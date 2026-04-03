@@ -12,7 +12,7 @@ resources:
       tasks:
         - task_key: bronze_ingestion
           notebook_task:
-            notebook_path: ../src/bronze/01_bronze_ingestion
+            notebook_path: ../src/bronze/01_bronze_ingestion.ipynb
             base_parameters:
               catalog: ${var.catalog}
               schema: bronze
@@ -21,7 +21,7 @@ resources:
           depends_on:
             - task_key: bronze_ingestion
           notebook_task:
-            notebook_path: ../src/silver/02_silver_processing
+            notebook_path: ../src/silver/02_silver_processing.ipynb
             base_parameters:
               catalog: ${var.catalog}
               src_schema: bronze
@@ -31,7 +31,7 @@ resources:
           depends_on:
             - task_key: silver_processing
           notebook_task:
-            notebook_path: ../src/gold/03_gold_modeling
+            notebook_path: ../src/gold/03_gold_modeling.ipynb
             base_parameters:
               catalog: ${var.catalog}
               src_schema: silver
@@ -41,7 +41,7 @@ resources:
           depends_on:
             - task_key: gold_modeling
           notebook_task:
-            notebook_path: ../src/04_spark_optimization
+            notebook_path: ../src/04_spark_optimization.ipynb
             base_parameters:
               catalog: ${var.catalog}
 
@@ -49,6 +49,6 @@ resources:
           depends_on:
             - task_key: spark_optimization
           notebook_task:
-            notebook_path: ../src/05_delta_optimization
+            notebook_path: ../src/05_delta_optimization.ipynb
             base_parameters:
               catalog: ${var.catalog}
