@@ -1,19 +1,12 @@
-# A sample job for ecom_project.
-
 resources:
   jobs:
-    sample_job:
-      name: sample_job
+    ecom_pipeline:
+      name: ecom_pipeline_${bundle.target}
 
       trigger:
-        # Run this job every day, exactly one day from the last run; see https://docs.databricks.com/api/workspace/jobs/create#trigger
         periodic:
           interval: 1
           unit: DAYS
-
-      #email_notifications:
-      #  on_failure:
-      #    - your_email@example.com
 
       parameters:
         - name: catalog
@@ -22,33 +15,45 @@ resources:
           default: ${var.schema}
 
       tasks:
-        - task_key: notebook_task
+        - task_key: bronze_ingestion
           notebook_task:
-            notebook_path: ../src/sample_notebook.ipynb
-        - task_key: python_wheel_task
-          depends_on:
-            - task_key: notebook_task
-          python_wheel_task:
-            package_name: ecom_project
-            entry_point: main
-            parameters:
-              - "--catalog"
-              - "${var.catalog}"
-              - "--schema"
-              - "${var.schema}"
-          environment_key: default
-        - task_key: refresh_pipeline
-          depends_on:
-            - task_key: notebook_task
-          pipeline_task:
-            pipeline_id: ${resources.pipelines.ecom_project_etl.id}
+            notebook_path: ../src/bronze/01_bronze_ingestion
+            base_parameters:
+              catalog: ${var.catalog}
+              schema: bronze
 
-      environments:
-        - environment_key: default
-          spec:
-            environment_version: "4"
-            dependencies:
-              # By default we just include the .whl file generated for the ecom_project package.
-              # See https://docs.databricks.com/dev-tools/bundles/library-dependencies.html
-              # for more information on how to add other libraries.
-              - ../dist/*.whl
+        - task_key: silver_processing
+          depends_on:
+            - task_key: bronze_ingestion
+          notebook_task:
+            notebook_path: ../src/silver/02_silver_processing
+            base_parameters:
+              catalog: ${var.catalog}
+              src_schema: bronze
+              tgt_schema: silver
+
+        - task_key: gold_modeling
+          depends_on:
+            - task_key: silver_processing
+          notebook_task:
+            notebook_path: ../src/gold/03_gold_modeling
+            base_parameters:
+              catalog: ${var.catalog}
+              src_schema: silver
+              tgt_schema: gold
+
+        - task_key: spark_optimization
+          depends_on:
+            - task_key: gold_modeling
+          notebook_task:
+            notebook_path: ../src/04_spark_optimization
+            base_parameters:
+              catalog: ${var.catalog}
+
+        - task_key: delta_optimization
+          depends_on:
+            - task_key: spark_optimization
+          notebook_task:
+            notebook_path: ../src/05_delta_optimization
+            base_parameters:
+              catalog: ${var.catalog}
