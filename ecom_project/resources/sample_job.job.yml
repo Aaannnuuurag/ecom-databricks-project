@@ -3,11 +3,6 @@ resources:
     ecom_pipeline:
       name: ecom_pipeline_${bundle.target}
 
-      trigger:
-        periodic:
-          interval: 1
-          unit: DAYS
-
       parameters:
         - name: catalog
           default: ${var.catalog}
