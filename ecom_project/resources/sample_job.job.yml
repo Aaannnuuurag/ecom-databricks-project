@@ -1,7 +1,7 @@
 resources:
-  jobs:
-    ecom_pipeline:
-      name: ecom_pipeline_${bundle.target}
+  # jobs:
+  #   ecom_pipeline:
+  #     name: ecom_pipeline_${bundle.target}
 
       parameters:
         - name: catalog
